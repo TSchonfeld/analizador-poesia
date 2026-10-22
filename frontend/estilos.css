@@ -1,0 +1,251 @@
+/* ---------- Tokens ---------- */
+:root {
+  color-scheme: light;
+  --fondo: #faf8f4;
+  --superficie: #ffffff;
+  --superficie-2: #f2efe8;
+  --borde: #e2ddd2;
+  --texto: #1f1d1a;
+  --texto-suave: #5f5a52;
+  --acento: #8a3b12;
+  --acento-texto: #ffffff;
+  --foco: #c2571f;
+  --alta: #2f6f3e;
+  --media: #9a6a00;
+  --baja: #a23b2a;
+  --c-fonicos: #f3c969;
+  --c-semanticos: #c9b2f0;
+  --c-lexicos: #9fd9c9;
+  --c-gramaticales: #f2a7b8;
+  --c-sintacticos: #a9c7f2;
+  --sombra: 0 1px 2px rgba(30, 25, 15, 0.06), 0 4px 16px rgba(30, 25, 15, 0.05);
+  --radio: 10px;
+  --fuente-ui: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --fuente-poema: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif;
+  --fuente-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --fondo: #161513;
+    --superficie: #1f1e1b;
+    --superficie-2: #292724;
+    --borde: #3a3732;
+    --texto: #ece8e1;
+    --texto-suave: #aaa398;
+    --acento: #e08a55;
+    --acento-texto: #1a1206;
+    --foco: #f0a070;
+    --alta: #7cc48e;
+    --media: #e2b54a;
+    --baja: #ef8a78;
+    --c-fonicos: rgba(232, 182, 60, 0.42);
+    --c-semanticos: rgba(168, 132, 245, 0.42);
+    --c-lexicos: rgba(72, 200, 168, 0.38);
+    --c-gramaticales: rgba(240, 110, 145, 0.4);
+    --c-sintacticos: rgba(95, 155, 245, 0.42);
+    --sombra: none;
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --fondo: #161513;
+  --superficie: #1f1e1b;
+  --superficie-2: #292724;
+  --borde: #3a3732;
+  --texto: #ece8e1;
+  --texto-suave: #aaa398;
+  --acento: #e08a55;
+  --acento-texto: #1a1206;
+  --foco: #f0a070;
+  --alta: #7cc48e;
+  --media: #e2b54a;
+  --baja: #ef8a78;
+  --c-fonicos: rgba(232, 182, 60, 0.42);
+  --c-semanticos: rgba(168, 132, 245, 0.42);
+  --c-lexicos: rgba(72, 200, 168, 0.38);
+  --c-gramaticales: rgba(240, 110, 145, 0.4);
+  --c-sintacticos: rgba(95, 155, 245, 0.42);
+  --sombra: none;
+}
+
+/* ---------- Base ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--fondo);
+  color: var(--texto);
+  font-family: var(--fuente-ui);
+  font-size: 16px;
+  line-height: 1.5;
+}
+.contenedor { max-width: 1120px; margin: 0 auto; padding: 0 16px; }
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+}
+:focus-visible { outline: 2px solid var(--foco); outline-offset: 2px; }
+h2, h3 { line-height: 1.25; }
+
+/* ---------- Cabecera ---------- */
+.cabecera { border-bottom: 1px solid var(--borde); background: var(--superficie); }
+.cabecera__fila { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 60px; }
+.marca { font-family: var(--fuente-poema); font-size: 1.4rem; font-weight: 600; margin: 0; letter-spacing: 0.01em; }
+
+/* ---------- Botones ---------- */
+.boton {
+  font: inherit; font-size: 0.95rem; cursor: pointer;
+  border-radius: 8px; border: 1px solid transparent;
+  padding: 8px 14px; line-height: 1.2;
+  background: none; color: var(--texto);
+}
+.boton--primario { background: var(--acento); color: var(--acento-texto); font-weight: 600; padding: 10px 22px; }
+.boton--primario:hover { filter: brightness(1.07); }
+.boton--primario:disabled { opacity: 0.6; cursor: progress; }
+.boton--fantasma { border-color: var(--borde); background: var(--superficie); }
+.boton--fantasma:hover { background: var(--superficie-2); }
+.boton--chip { border-color: var(--borde); border-radius: 999px; padding: 4px 12px; font-size: 0.875rem; background: var(--superficie); }
+.boton--chip:hover, .boton--chip[aria-pressed="true"] { background: var(--superficie-2); border-color: var(--texto-suave); }
+
+/* ---------- Entrada ---------- */
+.entrada { margin: 24px 0; }
+.etiqueta { display: block; font-weight: 600; margin-bottom: 8px; }
+.etiqueta-chica { font-size: 0.875rem; color: var(--texto-suave); }
+textarea {
+  width: 100%; resize: vertical; min-height: 200px;
+  padding: 14px 16px; border-radius: var(--radio);
+  border: 1px solid var(--borde); background: var(--superficie); color: var(--texto);
+  font-family: var(--fuente-poema); font-size: 1.05rem; line-height: 1.6;
+  box-shadow: var(--sombra);
+}
+.entrada__acciones { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; margin-top: 12px; }
+.ejemplos { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.entrada__derecha { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
+.check { display: inline-flex; gap: 6px; align-items: center; font-size: 0.925rem; cursor: pointer; }
+.estado { min-height: 1.5em; color: var(--texto-suave); margin: 10px 0 0; }
+.estado--error { color: var(--baja); }
+
+/* ---------- Resultados ---------- */
+.resultados { margin-bottom: 40px; }
+.resultados__barra {
+  display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px;
+  border-bottom: 1px solid var(--borde); margin-bottom: 20px;
+}
+.pestanas { display: flex; gap: 2px; overflow-x: auto; scrollbar-width: thin; max-width: 100%; }
+.pestanas [role="tab"] {
+  font: inherit; font-weight: 500; cursor: pointer; white-space: nowrap;
+  background: none; border: 0; border-bottom: 3px solid transparent;
+  padding: 10px 14px; color: var(--texto-suave);
+}
+.pestanas [role="tab"][aria-selected="true"] { color: var(--texto); border-bottom-color: var(--acento); }
+.pestanas [role="tab"]:hover { color: var(--texto); }
+.exportar { display: flex; gap: 8px; padding-bottom: 8px; }
+
+.avisos { border: 1px solid var(--media); border-radius: var(--radio); padding: 10px 14px; margin-bottom: 16px; background: var(--superficie); }
+.avisos p { margin: 0; }
+
+.tarjeta { background: var(--superficie); border: 1px solid var(--borde); border-radius: var(--radio); padding: 16px 18px; box-shadow: var(--sombra); }
+.resumen { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 20px; }
+.resumen .tarjeta h3 { margin: 0 0 4px; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--texto-suave); font-weight: 600; }
+.resumen .tarjeta p { margin: 0; font-size: 1.1rem; font-weight: 600; }
+.resumen .tarjeta .detalle { font-size: 0.9rem; font-weight: 400; color: var(--texto-suave); margin-top: 4px; }
+
+/* Tabla métrica */
+.tabla-envoltura { overflow-x: auto; border: 1px solid var(--borde); border-radius: var(--radio); background: var(--superficie); }
+table { border-collapse: collapse; width: 100%; font-size: 0.95rem; }
+th, td { text-align: left; vertical-align: top; padding: 10px 12px; border-bottom: 1px solid var(--borde); }
+th { background: var(--superficie-2); font-weight: 600; font-size: 0.85rem; white-space: nowrap; position: sticky; top: 0; }
+tr:last-child td { border-bottom: 0; }
+tr.cambio-estrofa td { border-top: 2px solid var(--borde); }
+td.num, td.silabas, td.rima { white-space: nowrap; }
+td.num { color: var(--texto-suave); text-align: right; }
+td.verso { font-family: var(--fuente-poema); font-size: 1.02rem; min-width: 14em; }
+td.silabeo { font-family: var(--fuente-mono); font-size: 0.85rem; min-width: 18em; }
+td.silabas strong { font-size: 1.1rem; }
+.sub { display: block; font-size: 0.8rem; color: var(--texto-suave); }
+.licencias { display: flex; flex-wrap: wrap; gap: 4px; }
+.lic { font-size: 0.78rem; padding: 1px 7px; border-radius: 999px; background: var(--superficie-2); border: 1px solid var(--borde); white-space: nowrap; }
+.lic--hiato { border-color: var(--media); }
+.lic--sinéresis, .lic--diéresis { border-color: var(--acento); }
+.rima-letra { font-family: var(--fuente-poema); font-weight: 700; font-size: 1.05rem; }
+details.alternativas { margin-top: 6px; font-family: var(--fuente-ui); }
+details.alternativas summary { cursor: pointer; font-size: 0.8rem; color: var(--acento); }
+details.alternativas ul { margin: 4px 0 0; padding-left: 18px; font-family: var(--fuente-mono); font-size: 0.8rem; }
+
+.confianza { display: inline-block; font-size: 0.75rem; font-weight: 600; padding: 1px 8px; border-radius: 999px; border: 1px solid currentColor; white-space: nowrap; }
+.confianza--alta { color: var(--alta); }
+.confianza--media { color: var(--media); }
+.confianza--baja { color: var(--baja); }
+
+/* Versificación */
+.estrofas { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+.estrofa h3 { margin: 0 0 6px; font-size: 1rem; }
+.estrofa .esquema { font-family: var(--fuente-mono); font-size: 0.9rem; color: var(--texto-suave); word-break: break-word; }
+.composicion { margin-bottom: 20px; }
+.composicion h3 { margin: 0 0 6px; font-family: var(--fuente-poema); font-size: 1.4rem; }
+
+/* Recursos */
+.recursos { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 20px; align-items: start; }
+.poema-resaltado {
+  font-family: var(--fuente-poema); font-size: 1.08rem; line-height: 1.85;
+  position: sticky; top: 12px; white-space: pre-wrap;
+}
+.poema-resaltado .linea { display: block; padding-left: 2.6em; text-indent: -2.6em; }
+.poema-resaltado .linea-num { display: inline-block; width: 2.6em; text-indent: 0; color: var(--texto-suave); font-family: var(--fuente-ui); font-size: 0.75rem; text-align: right; padding-right: 0.8em; }
+.poema-resaltado .separador-estrofa { display: block; height: 0.9em; }
+mark { color: inherit; border-radius: 3px; padding: 0 1px; background: transparent; box-shadow: inset 0 -0.55em 0 var(--marca, var(--c-semanticos)); transition: box-shadow 0.15s; cursor: pointer; }
+mark.varios { box-shadow: inset 0 -0.55em 0 var(--marca), inset 0 -0.7em 0 var(--marca-2, var(--marca)); }
+mark.activo { box-shadow: inset 0 -1.4em 0 var(--marca); outline: 1px solid var(--texto-suave); }
+.filtros { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.punto { display: inline-block; width: 0.75em; height: 0.75em; border-radius: 50%; margin-right: 6px; vertical-align: baseline; background: var(--marca); }
+.lista-recursos { display: grid; gap: 10px; }
+.recurso { border-left: 4px solid var(--marca); cursor: pointer; }
+.recurso.activo { outline: 2px solid var(--marca); }
+.recurso h4 { margin: 0; font-size: 1rem; display: flex; flex-wrap: wrap; gap: 8px; align-items: baseline; justify-content: space-between; }
+.recurso .meta { font-size: 0.8rem; color: var(--texto-suave); }
+.recurso blockquote { margin: 6px 0; font-family: var(--fuente-poema); font-style: italic; }
+.recurso p { margin: 0; font-size: 0.95rem; }
+.cat-fónicos { --marca: var(--c-fonicos); }
+.cat-semánticos { --marca: var(--c-semanticos); }
+.cat-léxicos { --marca: var(--c-lexicos); }
+.cat-gramaticales { --marca: var(--c-gramaticales); }
+.cat-sintácticos { --marca: var(--c-sintacticos); }
+.nota { font-size: 0.875rem; color: var(--texto-suave); }
+
+/* Temas e interpretación */
+.tema-principal { font-family: var(--fuente-poema); font-size: 1.5rem; margin: 0 0 14px; }
+.subtemas { margin: 0; padding-left: 20px; }
+.subtemas li { margin: 4px 0; }
+.interpretacion p.texto { font-family: var(--fuente-poema); font-size: 1.2rem; line-height: 1.7; margin: 0 0 10px; }
+.vacio { color: var(--texto-suave); font-style: italic; }
+
+.pie { color: var(--texto-suave); font-size: 0.85rem; padding-bottom: 32px; }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 760px) {
+  .recursos { grid-template-columns: 1fr; }
+  .poema-resaltado { position: static; }
+  .entrada__derecha { width: 100%; justify-content: space-between; }
+  .exportar { width: 100%; }
+  .exportar .boton { flex: 1; }
+  .marca { font-size: 1.2rem; }
+  .pestanas [role="tab"] { padding: 10px 10px; font-size: 0.95rem; }
+}
+
+/* ---------- Impresión / PDF ---------- */
+@media print {
+  :root { color-scheme: light; --fondo: #fff; --superficie: #fff; --superficie-2: #f3f3f3; --borde: #ccc; --texto: #000; --texto-suave: #444; --sombra: none;
+    --c-fonicos: #f3c969; --c-semanticos: #c9b2f0; --c-lexicos: #9fd9c9; --c-gramaticales: #f2a7b8; --c-sintacticos: #a9c7f2; }
+  .cabecera button, .entrada, .resultados__barra, .pie, .filtros, details.alternativas summary { display: none !important; }
+  .panel { display: block !important; break-inside: auto; margin-bottom: 18px; }
+  .panel[hidden] { display: block !important; }
+  .panel::before { content: attr(data-titulo); display: block; font-size: 1.3rem; font-weight: 700; margin: 12px 0 8px; font-family: var(--fuente-poema); }
+  .recursos { grid-template-columns: 1fr; }
+  .poema-resaltado { position: static; }
+  mark { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .tabla-envoltura { overflow: visible; }
+  tr { break-inside: avoid; }
+}
