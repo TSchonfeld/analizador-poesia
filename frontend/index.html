@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Analizador de Poesía</title>
+  <meta name="description" content="Análisis métrico, de versificación y retórico de poemas en español, para uso docente.">
+  <link rel="stylesheet" href="estilos.css">
+  <script>
+    // Aplica el tema guardado antes de pintar, para evitar parpadeos.
+    try {
+      const t = localStorage.getItem("tema");
+      if (t === "claro" || t === "oscuro") document.documentElement.dataset.theme = t === "claro" ? "light" : "dark";
+    } catch (e) {}
+  </script>
+</head>
+<body>
+  <header class="cabecera">
+    <div class="contenedor cabecera__fila">
+      <h1 class="marca">Analizador de Poesía</h1>
+      <button id="tema" class="boton boton--fantasma" type="button" aria-label="Cambiar entre modo claro y oscuro">
+        <span aria-hidden="true" id="tema-icono">◐</span> <span id="tema-texto">Tema</span>
+      </button>
+    </div>
+  </header>
+
+  <main class="contenedor">
+    <section class="entrada" aria-labelledby="titulo-entrada">
+      <h2 id="titulo-entrada" class="sr-only">Poema</h2>
+      <label for="poema" class="etiqueta">Pegá el poema (separá las estrofas con una línea en blanco)</label>
+      <textarea id="poema" rows="12" spellcheck="false" placeholder="Escrito está en mi alma vuestro gesto,&#10;y cuanto yo escribir de vos deseo;&#10;…"></textarea>
+      <div class="entrada__acciones">
+        <div class="ejemplos">
+          <span class="etiqueta-chica">Ejemplos:</span>
+          <button type="button" class="boton boton--chip" data-ejemplo="garcilaso">Garcilaso</button>
+          <button type="button" class="boton boton--chip" data-ejemplo="romance">Romance del prisionero</button>
+          <button type="button" class="boton boton--chip" data-ejemplo="pirata">Canción del pirata (fragmento)</button>
+        </div>
+        <div class="entrada__derecha">
+          <label class="check" id="check-ia">
+            <input type="checkbox" id="interpretar" checked>
+            <span id="etiqueta-ia">Analizar recursos, temas e interpretación con IA</span>
+          </label>
+          <button id="analizar" class="boton boton--primario" type="button">Analizar</button>
+        </div>
+      </div>
+      <p id="nota-ia" class="nota" hidden>Este servidor no tiene una API key de IA: se analizan la métrica, la versificación y los recursos formales que se detectan por reglas. Para sumar metáforas, temas e interpretación alcanza con una key gratuita de Gemini (ver el README).</p>
+      <p id="estado" class="estado" role="status" aria-live="polite"></p>
+    </section>
+
+    <section id="resultados" class="resultados" hidden aria-label="Resultados del análisis">
+      <div class="resultados__barra">
+        <div class="pestanas" role="tablist" aria-label="Secciones del análisis">
+          <button role="tab" id="tab-metrica" aria-controls="panel-metrica" aria-selected="true">Métrica</button>
+          <button role="tab" id="tab-versificacion" aria-controls="panel-versificacion" aria-selected="false" tabindex="-1">Versificación</button>
+          <button role="tab" id="tab-recursos" aria-controls="panel-recursos" aria-selected="false" tabindex="-1">Recursos</button>
+          <button role="tab" id="tab-temas" aria-controls="panel-temas" aria-selected="false" tabindex="-1">Temas</button>
+          <button role="tab" id="tab-interpretacion" aria-controls="panel-interpretacion" aria-selected="false" tabindex="-1">Interpretación</button>
+        </div>
+        <div class="exportar">
+          <button id="exportar-md" class="boton boton--fantasma" type="button">Exportar Markdown</button>
+          <button id="exportar-pdf" class="boton boton--fantasma" type="button">Exportar PDF</button>
+        </div>
+      </div>
+
+      <div id="avisos" class="avisos" hidden></div>
+
+      <div role="tabpanel" id="panel-metrica" aria-labelledby="tab-metrica" class="panel"></div>
+      <div role="tabpanel" id="panel-versificacion" aria-labelledby="tab-versificacion" class="panel" hidden></div>
+      <div role="tabpanel" id="panel-recursos" aria-labelledby="tab-recursos" class="panel" hidden></div>
+      <div role="tabpanel" id="panel-temas" aria-labelledby="tab-temas" class="panel" hidden></div>
+      <div role="tabpanel" id="panel-interpretacion" aria-labelledby="tab-interpretacion" class="panel" hidden></div>
+    </section>
+  </main>
+
+  <footer class="pie contenedor">
+    <p>La métrica y la versificación se calculan con reglas deterministas; los recursos, temas e interpretación los propone un modelo de lenguaje (o, sin IA, un conjunto de reglas) y conviene revisarlos.</p>
+  </footer>
+
+  <script src="ejemplos.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

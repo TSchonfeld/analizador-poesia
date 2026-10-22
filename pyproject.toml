@@ -1,0 +1,9 @@
+[project]
+name = "analizador-poesia"
+version = "0.1.0"
+description = "Análisis métrico, de versificación y retórico de poemas en español, para uso docente."
+requires-python = ">=3.11"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["backend"]
