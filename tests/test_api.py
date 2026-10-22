@@ -1,3 +1,4 @@
+import pytest
 from fastapi.testclient import TestClient
 
 from app import main
@@ -11,22 +12,40 @@ def test_salud():
     assert _cliente().get("/api/salud").json() == {"estado": "ok"}
 
 
-def test_analizar_sin_interpretacion(poema):
+@pytest.fixture
+def sin_keys(monkeypatch):
+    for v in ("ANTHROPIC_API_KEY", "GEMINI_API_KEY", "IA_PROVEEDOR"):
+        monkeypatch.delenv(v, raising=False)
+
+
+def test_config_sin_keys(sin_keys):
+    assert _cliente().get("/api/config").json() == {"ia_disponible": False, "proveedor": None}
+
+
+def test_config_con_gemini(sin_keys, monkeypatch):
+    monkeypatch.setenv("GEMINI_API_KEY", "clave")
+    assert _cliente().get("/api/config").json() == {"ia_disponible": True, "proveedor": "gemini"}
+
+
+def test_analizar_sin_ia_usa_reglas(poema, sin_keys):
     r = _cliente().post("/api/analizar", json={"texto": poema("garcilaso_soneto_v"), "interpretar": False})
     assert r.status_code == 200
     datos = r.json()
     assert datos["versificacion"]["composicion"]["tipo"] == "soneto"
     assert len(datos["metrica"]["versos"]) == 14
-    assert datos["interpretativo"] is None
+    assert datos["avisos"] == []
+    interp = datos["interpretativo"]
+    assert interp["origen"] == "reglas"
+    assert interp["temas"] is None and interp["interpretacion"] is None
+    assert any(x["nombre"] == "anáfora" for x in interp["recursos"])
 
 
-def test_analizar_sin_api_key_avisa(poema, monkeypatch):
-    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+def test_analizar_sin_api_key_avisa(poema, sin_keys):
     r = _cliente().post("/api/analizar", json={"texto": poema("romance_del_prisionero")})
     assert r.status_code == 200
     datos = r.json()
-    assert datos["interpretativo"] is None
-    assert "ANTHROPIC_API_KEY" in datos["avisos"][0]
+    assert datos["interpretativo"]["origen"] == "reglas"
+    assert "API key" in datos["avisos"][0]
 
 
 def test_analizar_con_interpretacion_simulada(poema, monkeypatch):
@@ -36,7 +55,8 @@ def test_analizar_con_interpretacion_simulada(poema, monkeypatch):
 
     monkeypatch.setattr(main, "analizar_interpretacion", falso)
     r = _cliente().post("/api/analizar", json={"texto": poema("romance_del_prisionero")})
-    assert r.json()["interpretativo"]["modelo"] == "falso"
+    datos = r.json()["interpretativo"]
+    assert datos["modelo"] == "falso" and datos["origen"] == "ia"
 
 
 def test_texto_vacio_o_largo():

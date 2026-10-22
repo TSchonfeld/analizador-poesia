@@ -37,13 +37,14 @@
           <button type="button" class="boton boton--chip" data-ejemplo="pirata">Canción del pirata (fragmento)</button>
         </div>
         <div class="entrada__derecha">
-          <label class="check">
+          <label class="check" id="check-ia">
             <input type="checkbox" id="interpretar" checked>
-            Recursos, temas e interpretación
+            <span id="etiqueta-ia">Analizar recursos, temas e interpretación con IA</span>
           </label>
           <button id="analizar" class="boton boton--primario" type="button">Analizar</button>
         </div>
       </div>
+      <p id="nota-ia" class="nota" hidden>Este servidor no tiene una API key de IA: se analizan la métrica, la versificación y los recursos formales que se detectan por reglas. Para sumar metáforas, temas e interpretación alcanza con una key gratuita de Gemini (ver el README).</p>
       <p id="estado" class="estado" role="status" aria-live="polite"></p>
     </section>
 
@@ -73,7 +74,7 @@
   </main>
 
   <footer class="pie contenedor">
-    <p>La métrica y la versificación se calculan con reglas deterministas; los recursos, temas e interpretación los propone un modelo de lenguaje y conviene revisarlos.</p>
+    <p>La métrica y la versificación se calculan con reglas deterministas; los recursos, temas e interpretación los propone un modelo de lenguaje (o, sin IA, un conjunto de reglas) y conviene revisarlos.</p>
   </footer>
 
   <script src="ejemplos.js"></script>

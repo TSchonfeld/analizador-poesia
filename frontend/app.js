@@ -55,6 +55,25 @@
     })
   );
 
+  /* ---------- Configuración del servidor ---------- */
+  const NOMBRES_PROVEEDOR = { gemini: "Gemini", anthropic: "Claude" };
+  fetch("/api/config")
+    .then((r) => (r.ok ? r.json() : null))
+    .then((c) => {
+      if (!c) return;
+      const casilla = $("#interpretar");
+      if (c.ia_disponible) {
+        $("#etiqueta-ia").textContent = `Analizar recursos, temas e interpretación con IA (${NOMBRES_PROVEEDOR[c.proveedor] || c.proveedor})`;
+      } else {
+        casilla.checked = false;
+        casilla.disabled = true;
+        $("#check-ia").classList.add("check--desactivado");
+        $("#etiqueta-ia").textContent = "Análisis con IA no disponible";
+        $("#nota-ia").hidden = false;
+      }
+    })
+    .catch(() => {});
+
   /* ---------- Pestañas ---------- */
   const pestanas = $$('[role="tab"]');
   function activarPestana(tab, enfocar = false) {
@@ -91,7 +110,7 @@
     const boton = $("#analizar");
     boton.disabled = true;
     const interpretar = $("#interpretar").checked;
-    mostrarEstado(interpretar ? "Analizando la métrica y consultando el análisis interpretativo…" : "Analizando la métrica…");
+    mostrarEstado(interpretar ? "Analizando la métrica y consultando a la IA…" : "Analizando…");
     try {
       const r = await fetch("/api/analizar", {
         method: "POST",
@@ -206,9 +225,12 @@
   }
 
   /* C. Recursos */
-  function sinInterpretacion(d) {
-    const motivo = d.avisos.length ? d.avisos[0] : "Activá «Recursos, temas e interpretación» y volvé a analizar.";
-    return `<p class="vacio">${esc(motivo)}</p>`;
+  function requiereIA(d) {
+    const motivo = d.avisos.length
+      ? d.avisos[0]
+      : "Esta sección necesita el análisis con IA. Sin API key solo se calculan la métrica, la versificación y los recursos formales.";
+    return `<p class="vacio">${esc(motivo)}</p>
+      <p class="nota">Con una API key gratuita de Gemini (Google AI Studio) configurada en el servidor, esta sección se completa automáticamente.</p>`;
   }
 
   function regexCita(cita) {
@@ -223,6 +245,16 @@
     const rangos = versos.map(() => []);
     recursos.forEach((r, id) => {
       if (!filtros.has(r.categoria)) return;
+      if (r.fragmentos) {
+        // Fragmentos sueltos (p. ej. las palabras repetidas de una anáfora).
+        r.fragmentos.forEach((f) => {
+          const re = regexCita(f.texto);
+          const linea = versos[f.verso - 1];
+          const m = re && linea !== undefined ? re.exec(linea) : null;
+          if (m) rangos[f.verso - 1].push({ ini: m.index, fin: m.index + m[0].length, id });
+        });
+        return;
+      }
       const re = regexCita(r.cita);
       if (!re) return;
       const desde = r.verso - 1;
@@ -266,7 +298,7 @@
   function renderizarRecursos(d) {
     const panel = $("#panel-recursos");
     const interp = d.interpretativo;
-    if (!interp) { panel.innerHTML = sinInterpretacion(d); return; }
+    const porReglas = interp.origen === "reglas";
     const versos = d.metrica.versos;
     const textos = versos.map((v) => v.texto);
     const recursos = interp.recursos;
@@ -293,7 +325,7 @@
         const versosTxt = r.verso === r.hasta_verso ? `v. ${r.verso}` : `vv. ${r.verso}–${r.hasta_verso}`;
         lista += `<article class="tarjeta recurso cat-${esc(c)}" data-id="${id}" tabindex="0">
           <h4><span>${esc(capitalizar(r.nombre))}</span> ${badge(r.confianza)}</h4>
-          <div class="meta">${esc(capitalizar(c))} · ${versosTxt}</div>
+          <div class="meta">${esc(capitalizar(c))} · ${versosTxt}${r.origen === "reglas" ? " · detectado por reglas" : ""}</div>
           <blockquote>«${esc(r.cita)}»</blockquote>
           <p>${esc(r.explicacion)}</p>
         </article>`;
@@ -302,11 +334,14 @@
     if (!recursos.length) lista = `<p class="vacio">No se detectaron recursos con evidencia textual suficiente.</p>`;
     else if (!lista) lista = `<p class="vacio">Ninguna categoría seleccionada.</p>`;
 
+    const avisoReglas = porReglas
+      ? `<p class="nota">Detectados por reglas, sin IA: solo recursos formales (anáfora, epífora, polisíndeton, aliteración y encabalgamiento). Los recursos de sentido, como la metáfora o la antítesis, necesitan el análisis con IA.</p>`
+      : "";
     const descartados = interp.recursos_descartados.length
       ? `<p class="nota">Se descartaron ${interp.recursos_descartados.length} recurso(s) propuestos por el modelo porque su cita no aparece en el poema.</p>`
       : "";
 
-    panel.innerHTML = `<div class="filtros" role="group" aria-label="Filtrar por categoría">${chips}</div>
+    panel.innerHTML = `${avisoReglas}<div class="filtros" role="group" aria-label="Filtrar por categoría">${chips}</div>
       <div class="recursos">
         <div class="tarjeta poema-resaltado" aria-label="Poema con los recursos resaltados">${poema}</div>
         <div><div class="lista-recursos">${lista}</div>${descartados}</div>
@@ -340,7 +375,7 @@
   /* D. Temas */
   function htmlTemas(d) {
     const i = d.interpretativo;
-    if (!i) return sinInterpretacion(d);
+    if (!i.temas) return requiereIA(d);
     const subs = i.temas.subtemas.map((s) => `<li>${esc(s)}</li>`).join("");
     return `<div class="tarjeta">
       <h3 class="sub">Tema principal</h3>
@@ -354,7 +389,7 @@
   /* E. Interpretación */
   function htmlInterpretacion(d) {
     const i = d.interpretativo;
-    if (!i) return sinInterpretacion(d);
+    if (!i.interpretacion) return requiereIA(d);
     return `<div class="tarjeta interpretacion">
       <p class="texto">${esc(i.interpretacion.texto)}</p>
       <p class="nota">${i.interpretacion.palabras} palabras${i.interpretacion.recortada ? " · recortada al máximo de 50" : ""} · propuesta de ${esc(i.modelo || "modelo")}</p>
@@ -394,11 +429,9 @@
     L.push(`- **Composición:** ${v.composicion.tipo} (confianza ${v.composicion.confianza}). ${v.composicion.justificacion}`);
     L.push(`- **Estrofas:**`);
     for (const e of v.estrofas) L.push(`    - ${e.numero}. ${e.tipo}: ${e.esquema} (confianza ${e.confianza})`);
-    if (!i) {
-      L.push("", "_Recursos, temas e interpretación no disponibles en este análisis._");
-      return L.join("\n") + "\n";
-    }
     L.push("", "## C. Recursos poéticos", "");
+    if (i.origen === "reglas") L.push("_Detectados por reglas, sin IA: solo recursos formales._", "");
+    if (!i.recursos.length) L.push("_No se detectaron recursos._", "");
     for (const c of CATEGORIAS) {
       const rs = i.recursos.filter((r) => r.categoria === c);
       if (!rs.length) continue;
@@ -409,9 +442,15 @@
       }
       L.push("");
     }
-    L.push("## D. Temas centrales", "", `- **Tema principal:** ${i.temas.principal}`);
-    for (const s of i.temas.subtemas) L.push(`- ${s}`);
-    L.push("", "## E. Posibles líneas de lectura e interpretación", "", i.interpretacion.texto, "");
+    L.push("## D. Temas centrales", "");
+    if (i.temas) {
+      L.push(`- **Tema principal:** ${i.temas.principal}`);
+      for (const s of i.temas.subtemas) L.push(`- ${s}`);
+    } else {
+      L.push("_Requiere el análisis con IA._");
+    }
+    L.push("", "## E. Posibles líneas de lectura e interpretación", "");
+    L.push(i.interpretacion ? i.interpretacion.texto : "_Requiere el análisis con IA._", "");
     return L.join("\n");
   }
 
