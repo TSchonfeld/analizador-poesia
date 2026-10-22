@@ -10,7 +10,7 @@ def test_soneto_de_garcilaso(poema):
     assert [v.silabas for v in e.versos] == [11] * 14
     assert all(v.arte == "arte mayor" for v in e.versos)
     assert [len(x) for x in e.estrofas] == [4, 4, 3, 3]
-    # El primer verso es ambiguo (hiato en «está | en» o en «mi | alma»):
+    # El primer verso es ambiguo (hiato en «está ‖ en» o en «mi ‖ alma»):
     # se muestran las alternativas y la confianza no es alta.
     v1 = e.versos[0]
     assert v1.confianza == "media"

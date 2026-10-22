@@ -310,7 +310,7 @@ def _construir_lectura(palabras, planas, inicio_palabra, separadores, candidatos
         a = palabras[w1].silabas[s1].texto
         b = palabras[w2].silabas[s2].texto
         if g in hiatos:
-            licencias.append(Licencia("hiato", f"{a} | {b}"))
+            licencias.append(Licencia("hiato", f"{a} ‖ {b}"))
         elif g in sineresis:
             licencias.append(Licencia("sinéresis", a + b))
         else:

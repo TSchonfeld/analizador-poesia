@@ -24,8 +24,8 @@ def test_sinalefa_por_defecto_y_alternativa_de_hiato():
     assert a.mejor().silabas == 10
     once = a.lecturas[11]
     assert [l.tipo for l in once[0].licencias if l.tipo == "hiato"] == ["hiato"]
-    # El hiato más natural es tras la vocal tónica: «es-tá | en».
-    assert "tá | en" in [l.texto for l in once[0].licencias]
+    # El hiato más natural es tras la vocal tónica: «es-tá ‖ en».
+    assert "tá ‖ en" in [l.texto for l in once[0].licencias]
 
 
 def test_sineresis():
