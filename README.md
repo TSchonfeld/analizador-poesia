@@ -6,9 +6,9 @@ Aplicación web para docentes de nivel secundario: se pega un poema en español 
 | --- | --- | --- |
 | **A. Métrica** | Silabeo por verso, licencias (sinalefa, sinéresis, diéresis, hiato), ley del acento final, cómputo silábico, nombre del verso y arte (menor o mayor). Si el silabeo es ambiguo, muestra las lecturas alternativas. | Motor propio basado en reglas (determinista) |
 | **B. Versificación** | Rima (consonante, asonante o libre) y esquema; tipo de cada estrofa; tipo de composición con una justificación breve. | Motor propio basado en reglas (determinista) |
-| **C. Recursos poéticos** | Recursos fónicos, semánticos, léxicos, gramaticales y sintácticos, con el verso citado, su número y el efecto expresivo. | API de Anthropic, con respuesta JSON validada |
-| **D. Temas centrales** | Un tema principal y de dos a cuatro subtemas. | API de Anthropic |
-| **E. Interpretación** | Posibles líneas de lectura en 50 palabras como máximo (la app cuenta y recorta). | API de Anthropic |
+| **C. Recursos poéticos** | Recursos fónicos, semánticos, léxicos, gramaticales y sintácticos, con el verso citado, su número y el efecto expresivo. | Modelo de lenguaje (Gemini o Claude) con respuesta JSON validada. Sin API key: recursos formales por reglas |
+| **D. Temas centrales** | Un tema principal y de dos a cuatro subtemas. | Modelo de lenguaje (requiere API key) |
+| **E. Interpretación** | Posibles líneas de lectura en 50 palabras como máximo (la app cuenta y recorta). | Modelo de lenguaje (requiere API key) |
 
 Cada resultado dudoso lleva un nivel de confianza (alta, media o baja). La terminología sigue la tradición métrica hispánica (Quilis, Navarro Tomás).
 
@@ -24,7 +24,8 @@ backend/
     rima.py           rima consonante/asonante y esquema
     estrofas.py       estrofas y tipo de composición
     analisis.py       punto de entrada de las secciones A y B
-  interpretacion/   cliente de Anthropic, esquema JSON y validaciones
+  interpretacion/   proveedores de IA (Gemini, Anthropic), esquema JSON, validaciones
+                    y detección de recursos por reglas (reglas.py)
 frontend/           HTML, CSS y JS sin frameworks ni paso de compilación
 tests/              tests de pytest (incluye los poemas de referencia)
 ```
@@ -39,17 +40,34 @@ cd analizador-poesia
 python -m venv .venv
 source .venv/bin/activate        # en Windows: .venv\Scripts\activate
 pip install -r requirements-dev.txt
-cp .env.example .env             # y completá ANTHROPIC_API_KEY
+cp .env.example .env             # opcional: completá GEMINI_API_KEY o ANTHROPIC_API_KEY
 ```
 
-La API key de Anthropic **solo** se lee desde la variable de entorno `ANTHROPIC_API_KEY` en el servidor: nunca llega al navegador y el archivo `.env` está en `.gitignore`. Sin API key la app funciona igual para la métrica y la versificación, y avisa que las secciones C, D y E no están disponibles.
+### Se puede usar gratis
+
+Las secciones A y B (métrica y versificación) no usan ninguna API: funcionan siempre, sin key y sin costo. Para las secciones C, D y E hace falta un modelo de lenguaje, y hay dos opciones:
+
+| Proveedor | Variable | Costo | Dónde se consigue la key |
+| --- | --- | --- | --- |
+| Google Gemini | `GEMINI_API_KEY` | Capa gratuita con límites diarios, sin tarjeta | [aistudio.google.com/apikey](https://aistudio.google.com/apikey) |
+| Anthropic (Claude) | `ANTHROPIC_API_KEY` | Pago por uso | [console.anthropic.com](https://console.anthropic.com/) |
+
+En la capa gratuita, Google puede usar los textos enviados para mejorar sus productos: no conviene pegar material que no se quiera compartir. Si se supera el límite gratuito, la app lo avisa y sigue mostrando la métrica.
+
+Las keys **solo** se leen desde variables de entorno en el servidor: nunca llegan al navegador y el archivo `.env` está en `.gitignore`. Si hay más de una key, se usa Anthropic salvo que `IA_PROVEEDOR` diga otra cosa.
+
+### Sin API key: recursos por reglas
+
+Sin ninguna key, la casilla «Analizar recursos, temas e interpretación con IA» aparece desactivada con un aviso, y la pestaña de recursos muestra los que se pueden reconocer en la superficie del texto con reglas conservadoras: aliteración, anáfora, epífora, polisíndeton y encabalgamiento. Los recursos que dependen del sentido (metáfora, antítesis, hipérbole…), los temas y la interpretación muestran un aviso que explica que necesitan una API key.
 
 Variables opcionales:
 
 | Variable | Valor por defecto | Para qué sirve |
 | --- | --- | --- |
-| `ANTHROPIC_MODEL` | `claude-sonnet-5-5` | Modelo usado para el análisis interpretativo |
-| `ANTHROPIC_EFFORT` | `medium` | Nivel de esfuerzo del modelo (`low`, `medium`, `high`) |
+| `IA_PROVEEDOR` | automático | `gemini` o `anthropic`, para elegir cuando hay dos keys |
+| `GEMINI_MODEL` | `gemini-flash-latest` | Modelo de Gemini |
+| `ANTHROPIC_MODEL` | `claude-sonnet-5-5` | Modelo de Claude |
+| `ANTHROPIC_EFFORT` | `medium` | Nivel de esfuerzo de Claude (`low`, `medium`, `high`) |
 
 ## Uso
 
@@ -122,13 +140,13 @@ Se evaluó la librería [rantanplan](https://pypi.org/project/rantanplan/) (proy
 
 ## Análisis interpretativo
 
-El backend envía el poema numerado (y el resumen métrico, para que el modelo no lo contradiga) a la API de Anthropic con salida estructurada: el modelo solo puede responder con JSON que cumpla el esquema de `interpretacion/esquema.py`. Después, `interpretacion/validacion.py`:
+El backend envía el poema numerado (y el resumen métrico, para que el modelo no lo contradiga) al proveedor configurado (Gemini o Anthropic) con salida estructurada: el modelo solo puede responder con JSON que cumpla el esquema de `interpretacion/esquema.py`. Después, `interpretacion/validacion.py`:
 
 - descarta cualquier recurso cuya cita no aparezca literalmente en el poema (no se inventan recursos) y corrige el número de verso si la cita está en otro;
 - limita los subtemas a cuatro;
 - cuenta las palabras de la interpretación y la recorta a 50 si se excede.
 
-Si el modelo declina la solicitud, la API la reintenta con otro modelo (parámetro `fallbacks`).
+Con Anthropic, si el modelo declina la solicitud, la API la reintenta con otro modelo (parámetro `fallbacks`).
 
 ## Despliegue
 
@@ -136,7 +154,7 @@ Si el modelo declina la solicitud, la API la reintenta con otro modelo (parámet
 
 1. Subí el repositorio a GitHub.
 2. En Render, **New → Blueprint** y elegí el repositorio: `render.yaml` crea el servicio web.
-3. Cargá `ANTHROPIC_API_KEY` en **Environment** cuando Render la pida.
+3. En **Environment**, cargá `GEMINI_API_KEY` (gratis) o `ANTHROPIC_API_KEY`. Las dos son opcionales: sin ninguna, la app publica la métrica y los recursos por reglas.
 
 También se puede crear a mano un **Web Service** de Python con:
 
@@ -147,7 +165,7 @@ También se puede crear a mano un **Web Service** de Python con:
 
 1. **New Project → Deploy from GitHub repo**.
 2. Railway detecta Python e instala `requirements.txt`; el `Procfile` define el comando de inicio.
-3. En **Variables**, agregá `ANTHROPIC_API_KEY`.
+3. En **Variables**, agregá `GEMINI_API_KEY` o `ANTHROPIC_API_KEY` (opcional).
 
 ### Vercel
 
@@ -161,4 +179,6 @@ Vercel está pensado para funciones sin servidor; esta app corre mejor como serv
 - **Hiatos y diptongos inestables:** palabras como *riela* o *suave* admiten dos pronunciaciones; cuando el metro no decide, se muestran ambas lecturas.
 - **Rima:** la rima consonante se compara por pronunciación sin seseo (*casa* y *caza* no riman en consonante). Un estribillo repetido rima consigo mismo.
 - **Composiciones poco frecuentes:** la silva, la estrofa libre o el verso libre con metro de base se identifican de forma aproximada.
+- **Recursos por reglas:** solo cubren recursos formales y usan umbrales conservadores; pueden omitir aliteraciones sutiles o encabalgamientos que no terminan en palabra átona.
+- **Gemini:** la integración está probada con un cliente simulado; los límites de la capa gratuita los fija Google y cambian con el tiempo.
 - **Análisis interpretativo:** depende de un modelo de lenguaje, puede variar entre ejecuciones y conviene revisarlo antes de usarlo en clase.

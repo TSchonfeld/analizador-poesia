@@ -10,7 +10,8 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: "3.12.8"
+      # Opcionales: sin ninguna key la app muestra métrica y recursos por reglas.
+      - key: GEMINI_API_KEY
+        sync: false
       - key: ANTHROPIC_API_KEY
         sync: false
-      - key: ANTHROPIC_MODEL
-        value: claude-sonnet-5-5
